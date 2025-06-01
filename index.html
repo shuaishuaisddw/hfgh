@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>选择题刷题系统</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 700px; margin: auto; }
+    .question-box { border: 1px solid #ccc; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+    .option { margin: 0.5rem 0; cursor: pointer; }
+    .option:hover { background: #f0f0f0; }
+    .selected { background-color: #d3eaff; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; margin-top: 1rem; }
+    #result { margin-top: 2rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>选择题刷题系统</h1>
+  <div id="app">
+    <div class="question-box" id="questionBox"></div>
+    <div id="optionsBox"></div>
+    <button id="submitBtn">提交答案</button>
+    <div id="result"></div>
+  </div>
+
+  <script type="module">
+    import { choiceQuestions } from './quiz_questions.js';
+    import { QuizManager } from './quiz.js';
+
+    const quiz = new QuizManager();
+    const questionBox = document.getElementById('questionBox');
+    const optionsBox = document.getElementById('optionsBox');
+    const submitBtn = document.getElementById('submitBtn');
+    const resultBox = document.getElementById('result');
+
+    let selectedOption = null;
+
+    function renderQuestion() {
+      const q = quiz.getCurrentQuestion();
+      if (!q) return;
+      questionBox.textContent = `第 ${quiz.currentIndex + 1} 题：${q.question}`;
+      optionsBox.innerHTML = '';
+      q.options.forEach(option => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.textContent = option;
+        div.onclick = () => {
+          document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+          div.classList.add('selected');
+          selectedOption = option[0];
+        };
+        optionsBox.appendChild(div);
+      });
+      resultBox.textContent = '';
+    }
+
+    submitBtn.onclick = () => {
+      if (!selectedOption) {
+        alert('请选择一个选项');
+        return;
+      }
+      const correct = quiz.submitAnswer(selectedOption);
+      resultBox.textContent = correct ? '✅ 正确！' : `❌ 错误，正确答案是 ${quiz.getCurrentQuestion()?.answer || '无'}`;
+      selectedOption = null;
+      setTimeout(() => {
+        if (quiz.isFinished()) {
+          const mistakes = quiz.getMistakes();
+          resultBox.innerHTML = `🎉 答题结束，共${quiz.questions.length}题，错误${mistakes.length}题。`;
+          if (mistakes.length > 0) {
+            resultBox.innerHTML += '<br>错题题号：' + mistakes.map(m => choiceQuestions.indexOf(m) + 1).join(', ');
+          }
+        } else {
+          renderQuestion();
+        }
+      }, 800);
+    };
+
+    renderQuestion();
+  </script>
+</body>
+</html>
