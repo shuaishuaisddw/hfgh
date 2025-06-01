@@ -20,5 +20,5 @@ export const choiceQuestions = [
     ],
     answer: "A"
   }
-  // ...剩余101题省略（系统中完整）
+  // ...完整103题省略
 ];
